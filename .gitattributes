@@ -1,0 +1,9 @@
+# Treat binary files correctly to prevent corruption during transfers
+*.jar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
