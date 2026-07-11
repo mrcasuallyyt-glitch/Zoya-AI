@@ -61,6 +61,7 @@ def generate_assets():
         # Standard icon
         run_cmd([
             'convert', logo_path,
+            '-strip',
             '-resize', f'{icon_size}x{icon_size}!',
             icon_path
         ])
@@ -70,6 +71,7 @@ def generate_assets():
         radius = icon_size / 2
         run_cmd([
             'convert', logo_path,
+            '-strip',
             '-resize', f'{icon_size}x{icon_size}!',
             '-alpha', 'on',
             '-background', 'none',
@@ -84,6 +86,7 @@ def generate_assets():
         fg_path = os.path.join(folder_path, 'ic_launcher_foreground.png')
         run_cmd([
             'convert', logo_path,
+            '-strip',
             '-resize', f'{inner_logo_size}x{inner_logo_size}',
             '-background', 'none',
             '-gravity', 'center',
@@ -107,6 +110,7 @@ def generate_assets():
             
         run_cmd([
             'convert', logo_path,
+            '-strip',
             '-resize', f'{logo_splash_size}x{logo_splash_size}',
             '-background', bg_color,
             '-gravity', 'center',
