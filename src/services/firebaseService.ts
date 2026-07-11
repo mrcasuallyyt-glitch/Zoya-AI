@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, signInAnonymously } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import {
   getFirestore,
   doc,
@@ -95,16 +95,6 @@ export async function signInWithGoogle() {
   }
 }
 
-export async function signInAsGuest() {
-  try {
-    const result = await signInAnonymously(auth);
-    return result.user;
-  } catch (error) {
-    console.error("Failed to sign in as guest", error);
-    throw error;
-  }
-}
-
 export async function logout() {
   try {
     await signOut(auth);
@@ -148,7 +138,6 @@ export async function saveUserProfile(uid: string, name: string, age: number, em
 }
 
 export async function updateUserProfile(uid: string, name: string, age: number) {
-  if (uid === "local_guest") return;
   const path = `users/${uid}`;
   try {
     const docRef = doc(db, "users", uid);
@@ -166,8 +155,6 @@ export async function updateUserProfile(uid: string, name: string, age: number) 
 export async function createSession(sessionId: string, title: string) {
   const user = auth.currentUser;
   if (!user) {
-    const isLocalGuest = localStorage.getItem("zoya_is_local_guest") === "true";
-    if (isLocalGuest) return;
     throw new Error("User must be authenticated to create a session");
   }
 
@@ -218,15 +205,6 @@ export async function addMessageToSession(
 export async function getSessionsForUser(): Promise<any[]> {
   const user = auth.currentUser;
   if (!user) {
-    const isLocalGuest = localStorage.getItem("zoya_is_local_guest") === "true";
-    if (isLocalGuest) {
-      return [{
-        id: "local_guest_session",
-        userId: "local_guest",
-        title: "Zoya AI Voice Session",
-        updatedAt: new Date()
-      }];
-    }
     return [];
   }
 
@@ -278,7 +256,6 @@ export function subscribeToMessages(sessionId: string, callback: (messages: any[
 }
 
 export async function deleteSession(sessionId: string) {
-  if (sessionId === "local_guest_session") return;
   const path = `sessions/${sessionId}`;
   try {
     await deleteDoc(doc(db, "sessions", sessionId));

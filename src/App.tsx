@@ -257,30 +257,11 @@ export default function App() {
           setIsAuthLoading(false);
         }
       } else {
-        const isLocalGuest = localStorage.getItem("zoya_is_local_guest") === "true";
-        if (isLocalGuest) {
-          const guestUser = {
-            uid: "local_guest",
-            email: "guest@zoya.ai",
-            displayName: "Guest User",
-          } as User;
-          setCurrentUser(guestUser);
-          setUserProfile({
-            uid: "local_guest",
-            name: "Guest User",
-            age: 25,
-            email: "guest@zoya.ai",
-          });
-          setCurrentSessionId("local_guest_session");
-          setIsProfileChecking(false);
-          setIsAuthLoading(false);
-        } else {
-          setCurrentUser(null);
-          setCurrentSessionId(null);
-          setUserProfile(null);
-          setIsProfileChecking(false);
-          setIsAuthLoading(false);
-        }
+        setCurrentUser(null);
+        setCurrentSessionId(null);
+        setUserProfile(null);
+        setIsProfileChecking(false);
+        setIsAuthLoading(false);
       }
     });
     return () => unsubscribe();
@@ -288,7 +269,7 @@ export default function App() {
 
   // Sync Messages from Firestore when session is active
   useEffect(() => {
-    if (currentUser && currentUser.uid !== "local_guest" && currentSessionId) {
+    if (currentUser && currentSessionId) {
       const unsubscribe = subscribeToMessages(currentSessionId, (firestoreMessages) => {
         const mapped = firestoreMessages.map((m: any) => ({
           id: m.id,
@@ -337,7 +318,7 @@ export default function App() {
     // Optimistic UI update
     setMessages((prev) => [...prev, { id, sender, text }]);
 
-    if (auth.currentUser && currentUser?.uid !== "local_guest" && currentSessionId) {
+    if (auth.currentUser && currentSessionId) {
       try {
         await addMessageToSession(currentSessionId, id, sender, text);
       } catch (err) {
@@ -419,26 +400,7 @@ export default function App() {
   }
 
   if (!currentUser) {
-    return (
-      <LoginPage
-        onGuestLogin={() => {
-          localStorage.setItem("zoya_is_local_guest", "true");
-          const guestUser = {
-            uid: "local_guest",
-            email: "guest@zoya.ai",
-            displayName: "Guest User",
-          } as User;
-          setCurrentUser(guestUser);
-          setUserProfile({
-            uid: "local_guest",
-            name: "Guest User",
-            age: 25,
-            email: "guest@zoya.ai",
-          });
-          setCurrentSessionId("local_guest_session");
-        }}
-      />
-    );
+    return <LoginPage />;
   }
 
   if (!userProfile) {
