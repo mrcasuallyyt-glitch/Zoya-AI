@@ -37,6 +37,11 @@ jobs:
       - name: Sync Capacitor Android
         run: npx cap sync android
 
+      - name: Install ImageMagick
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+
       - name: Regenerate and Fix Android Icons and Splashes
         run: |
           python3 generate_assets.py
