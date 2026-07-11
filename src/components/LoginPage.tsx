@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { LogIn, ExternalLink, Loader2, AlertCircle } from "lucide-react";
+import { LogIn, ExternalLink, Loader2, AlertCircle, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { zoyaLogo } from "../assets/logo";
-import { signInWithGoogle } from "../services/firebaseService";
+import { signInWithGoogle, signInAsGuest } from "../services/firebaseService";
 
-export default function LoginPage() {
+export default function LoginPage({ onGuestLogin }: { onGuestLogin?: () => void }) {
   const [isIframe, setIsIframe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
 
@@ -14,6 +15,24 @@ export default function LoginPage() {
     // Detect if running inside an iframe (like the AI Studio preview pane)
     setIsIframe(window.self !== window.top);
   }, []);
+
+  const handleGuestSignIn = async () => {
+    setGuestLoading(true);
+    setError(null);
+    setUnauthorizedDomain(null);
+    try {
+      await signInAsGuest();
+    } catch (err: any) {
+      console.warn("Firebase Guest Auth failed or is disabled. Falling back to local offline guest mode.", err);
+      if (onGuestLogin) {
+        onGuestLogin();
+      } else {
+        setError(err?.message || "Guest Login failed.");
+      }
+    } finally {
+      setGuestLoading(false);
+    }
+  };
 
   const handleSignIn = async () => {
     setLoading(true);
@@ -164,7 +183,7 @@ export default function LoginPage() {
             whileHover={!loading ? { scale: 1.02 } : {}}
             whileTap={!loading ? { scale: 0.98 } : {}}
             onClick={handleSignIn}
-            disabled={loading}
+            disabled={loading || guestLoading}
             className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white font-semibold flex items-center justify-center gap-3 transition-all shadow-lg hover:shadow-violet-500/25 border border-white/10 cursor-pointer disabled:opacity-50"
           >
             {loading ? (
@@ -173,6 +192,27 @@ export default function LoginPage() {
               <LogIn size={18} />
             )}
             <span>{loading ? "Signing In..." : "Sign In with Google"}</span>
+          </motion.button>
+
+          <div className="flex items-center py-1 text-white/20 text-xs w-full">
+            <div className="flex-1 h-[1px] bg-white/10"></div>
+            <span className="px-3">OR / YA PHIR</span>
+            <div className="flex-1 h-[1px] bg-white/10"></div>
+          </div>
+
+          <motion.button
+            whileHover={!guestLoading ? { scale: 1.02 } : {}}
+            whileTap={!guestLoading ? { scale: 0.98 } : {}}
+            onClick={handleGuestSignIn}
+            disabled={loading || guestLoading}
+            className="w-full py-4 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-semibold flex items-center justify-center gap-3 transition-all border border-white/10 cursor-pointer disabled:opacity-50"
+          >
+            {guestLoading ? (
+              <Loader2 size={18} className="animate-spin text-violet-400" />
+            ) : (
+              <Sparkles size={18} className="text-violet-400" />
+            )}
+            <span>{guestLoading ? "Starting Guest Mode..." : "Continue as Guest"}</span>
           </motion.button>
         </div>
 

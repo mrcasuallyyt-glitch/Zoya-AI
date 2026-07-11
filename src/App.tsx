@@ -231,8 +231,8 @@ export default function App() {
   // Auth State Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
       if (user) {
+        setCurrentUser(user);
         setIsSyncing(true);
         setIsProfileChecking(true);
         try {
@@ -257,10 +257,30 @@ export default function App() {
           setIsAuthLoading(false);
         }
       } else {
-        setCurrentSessionId(null);
-        setUserProfile(null);
-        setIsProfileChecking(false);
-        setIsAuthLoading(false);
+        const isLocalGuest = localStorage.getItem("zoya_is_local_guest") === "true";
+        if (isLocalGuest) {
+          const guestUser = {
+            uid: "local_guest",
+            email: "guest@zoya.ai",
+            displayName: "Guest User",
+          } as User;
+          setCurrentUser(guestUser);
+          setUserProfile({
+            uid: "local_guest",
+            name: "Guest User",
+            age: 25,
+            email: "guest@zoya.ai",
+          });
+          setCurrentSessionId("local_guest_session");
+          setIsProfileChecking(false);
+          setIsAuthLoading(false);
+        } else {
+          setCurrentUser(null);
+          setCurrentSessionId(null);
+          setUserProfile(null);
+          setIsProfileChecking(false);
+          setIsAuthLoading(false);
+        }
       }
     });
     return () => unsubscribe();
@@ -268,7 +288,7 @@ export default function App() {
 
   // Sync Messages from Firestore when session is active
   useEffect(() => {
-    if (currentUser && currentSessionId) {
+    if (currentUser && currentUser.uid !== "local_guest" && currentSessionId) {
       const unsubscribe = subscribeToMessages(currentSessionId, (firestoreMessages) => {
         const mapped = firestoreMessages.map((m: any) => ({
           id: m.id,
@@ -294,11 +314,19 @@ export default function App() {
   // Handle User Logout
   const handleLogout = async () => {
     try {
+      localStorage.removeItem("zoya_is_local_guest");
       await logout();
       setMessages([]);
       localStorage.removeItem("zoya_chat_history");
     } catch (e) {
       console.error("Logout failed", e);
+      // Fallback clean logout
+      localStorage.removeItem("zoya_is_local_guest");
+      setCurrentUser(null);
+      setUserProfile(null);
+      setCurrentSessionId(null);
+      setMessages([]);
+      localStorage.removeItem("zoya_chat_history");
     }
   };
 
@@ -309,14 +337,14 @@ export default function App() {
     // Optimistic UI update
     setMessages((prev) => [...prev, { id, sender, text }]);
 
-    if (auth.currentUser && currentSessionId) {
+    if (auth.currentUser && currentUser?.uid !== "local_guest" && currentSessionId) {
       try {
         await addMessageToSession(currentSessionId, id, sender, text);
       } catch (err) {
         console.error("Failed to save message to Firebase:", err);
       }
     }
-  }, [currentSessionId]);
+  }, [currentSessionId, currentUser]);
 
   useEffect(() => {
     return () => {
@@ -391,7 +419,26 @@ export default function App() {
   }
 
   if (!currentUser) {
-    return <LoginPage />;
+    return (
+      <LoginPage
+        onGuestLogin={() => {
+          localStorage.setItem("zoya_is_local_guest", "true");
+          const guestUser = {
+            uid: "local_guest",
+            email: "guest@zoya.ai",
+            displayName: "Guest User",
+          } as User;
+          setCurrentUser(guestUser);
+          setUserProfile({
+            uid: "local_guest",
+            name: "Guest User",
+            age: 25,
+            email: "guest@zoya.ai",
+          });
+          setCurrentSessionId("local_guest_session");
+        }}
+      />
+    );
   }
 
   if (!userProfile) {
