@@ -43,7 +43,7 @@ dependencies {
     implementation project(':capacitor-cordova-android-plugins')
     
     // Align Kotlin stdlib versions to avoid duplicate class errors
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.24"
 }
 
 apply from: 'capacitor.build.gradle'
