@@ -37,6 +37,10 @@ jobs:
       - name: Sync Capacitor Android
         run: npx cap sync android
 
+      - name: Regenerate and Fix Android Icons and Splashes
+        run: |
+          python3 generate_assets.py
+
       - name: Accept Android SDK Licenses
         run: |
           yes | sdkmanager --licenses || true
