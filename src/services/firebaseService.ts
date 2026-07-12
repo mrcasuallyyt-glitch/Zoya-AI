@@ -1,5 +1,13 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  signInAnonymously,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
 import {
   getFirestore,
   doc,
@@ -91,6 +99,36 @@ export async function signInWithGoogle() {
     return result.user;
   } catch (error) {
     console.error("Failed to sign in with Google", error);
+    throw error;
+  }
+}
+
+export async function signInAsGuest() {
+  try {
+    const result = await signInAnonymously(auth);
+    return result.user;
+  } catch (error) {
+    console.error("Failed to sign in as guest", error);
+    throw error;
+  }
+}
+
+export async function signUpWithEmail(email: string, password: string) {
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error) {
+    console.error("Failed to sign up with email", error);
+    throw error;
+  }
+}
+
+export async function signInWithEmail(email: string, password: string) {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error) {
+    console.error("Failed to sign in with email", error);
     throw error;
   }
 }
