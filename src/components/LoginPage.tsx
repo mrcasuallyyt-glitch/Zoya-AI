@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { LogIn, ExternalLink, Loader2, AlertCircle, Mail, Lock, UserPlus } from "lucide-react";
+import { LogIn, ExternalLink, Loader2, AlertCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { zoyaLogo } from "../assets/logo";
-import { signInWithGoogle, loginWithEmail, signUpWithEmail } from "../services/firebaseService";
+import { signInWithGoogle } from "../services/firebaseService";
 
 export default function LoginPage() {
   const [isIframe, setIsIframe] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
 
@@ -17,45 +14,6 @@ export default function LoginPage() {
     // Detect if running inside an iframe (like the AI Studio preview pane)
     setIsIframe(window.self !== window.top);
   }, []);
-
-  const handleEmailAction = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) {
-      setError("Please fill in all fields.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setUnauthorizedDomain(null);
-
-    try {
-      if (isRegisterMode) {
-        await signUpWithEmail(email, password);
-      } else {
-        await loginWithEmail(email, password);
-      }
-    } catch (err: any) {
-      console.error("Email authentication failed:", err);
-      if (err?.code === "auth/email-already-in-use") {
-        setError("Yeh email address pehle se registered hai. Kripya login karein.");
-      } else if (err?.code === "auth/invalid-email" || err?.message?.includes("invalid-email")) {
-        setError("Invalid email address format.");
-      } else if (err?.code === "auth/weak-password") {
-        setError("Password kam se kam 6 characters ka hona chahiye.");
-      } else if (err?.code === "auth/invalid-credential" || err?.code === "auth/user-not-found" || err?.code === "auth/wrong-password") {
-        setError("Sahi email ya password enter karein.");
-      } else {
-        setError(err?.message || "Authentication failed. Try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSignIn = async () => {
     setLoading(true);
@@ -188,90 +146,6 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Auth Mode Toggle Tabs */}
-        <div className="flex w-full bg-white/5 p-1 rounded-2xl border border-white/10 mb-6">
-          <button
-            type="button"
-            onClick={() => { setIsRegisterMode(false); setError(null); }}
-            className={`flex-1 py-2.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
-              !isRegisterMode
-                ? "bg-gradient-to-r from-violet-600/30 to-pink-600/30 text-white border border-violet-500/30 font-bold"
-                : "text-white/60 hover:text-white"
-            }`}
-          >
-            Login / Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => { setIsRegisterMode(true); setError(null); }}
-            className={`flex-1 py-2.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
-              isRegisterMode
-                ? "bg-gradient-to-r from-violet-600/30 to-pink-600/30 text-white border border-violet-500/30 font-bold"
-                : "text-white/60 hover:text-white"
-            }`}
-          >
-            Create Account
-          </button>
-        </div>
-
-        {/* Email & Password Form */}
-        <form onSubmit={handleEmailAction} className="w-full space-y-4 mb-6">
-          <div className="space-y-3">
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">
-                <Mail size={16} />
-              </span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email Address"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-3.5 text-sm focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/25 transition-all text-white placeholder:text-white/30"
-                required
-              />
-            </div>
-
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">
-                <Lock size={16} />
-              </span>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-3.5 text-sm focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/25 transition-all text-white placeholder:text-white/30"
-                minLength={6}
-                required
-              />
-            </div>
-          </div>
-
-          <motion.button
-            whileHover={!loading ? { scale: 1.02 } : {}}
-            whileTap={!loading ? { scale: 0.98 } : {}}
-            type="submit"
-            disabled={loading}
-            className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white font-semibold flex items-center justify-center gap-2 transition-all border border-white/10 cursor-pointer disabled:opacity-50"
-          >
-            {loading ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : isRegisterMode ? (
-              <UserPlus size={16} />
-            ) : (
-              <LogIn size={16} />
-            )}
-            <span>{loading ? "Please wait..." : isRegisterMode ? "Register & Continue" : "Login with Email"}</span>
-          </motion.button>
-        </form>
-
-        {/* Divider */}
-        <div className="flex items-center gap-3 w-full mb-6">
-          <div className="h-[1px] bg-white/10 flex-1"></div>
-          <span className="text-[10px] font-mono text-white/30 uppercase tracking-wider">OR / YA PHIR</span>
-          <div className="h-[1px] bg-white/10 flex-1"></div>
-        </div>
-
         {/* Action Buttons */}
         <div className="w-full space-y-3">
           {isIframe && (
@@ -289,15 +163,14 @@ export default function LoginPage() {
           <motion.button
             whileHover={!loading ? { scale: 1.02 } : {}}
             whileTap={!loading ? { scale: 0.98 } : {}}
-            type="button"
             onClick={handleSignIn}
             disabled={loading}
-            className="w-full py-4 px-6 rounded-2xl bg-[#13131a] hover:bg-[#1a1a24] text-white font-semibold flex items-center justify-center gap-3 transition-all border border-white/10 cursor-pointer disabled:opacity-50"
+            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white font-semibold flex items-center justify-center gap-3 transition-all shadow-lg hover:shadow-violet-500/25 border border-white/10 cursor-pointer disabled:opacity-50"
           >
             {loading ? (
-              <Loader2 size={18} className="animate-spin text-violet-400" />
+              <Loader2 size={18} className="animate-spin" />
             ) : (
-              <LogIn size={18} className="text-violet-400" />
+              <LogIn size={18} />
             )}
             <span>{loading ? "Signing In..." : "Sign In with Google"}</span>
           </motion.button>

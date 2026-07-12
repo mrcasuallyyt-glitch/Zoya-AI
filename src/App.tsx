@@ -231,8 +231,8 @@ export default function App() {
   // Auth State Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
       if (user) {
-        setCurrentUser(user);
         setIsSyncing(true);
         setIsProfileChecking(true);
         try {
@@ -257,7 +257,6 @@ export default function App() {
           setIsAuthLoading(false);
         }
       } else {
-        setCurrentUser(null);
         setCurrentSessionId(null);
         setUserProfile(null);
         setIsProfileChecking(false);
@@ -295,19 +294,11 @@ export default function App() {
   // Handle User Logout
   const handleLogout = async () => {
     try {
-      localStorage.removeItem("zoya_is_local_guest");
       await logout();
       setMessages([]);
       localStorage.removeItem("zoya_chat_history");
     } catch (e) {
       console.error("Logout failed", e);
-      // Fallback clean logout
-      localStorage.removeItem("zoya_is_local_guest");
-      setCurrentUser(null);
-      setUserProfile(null);
-      setCurrentSessionId(null);
-      setMessages([]);
-      localStorage.removeItem("zoya_chat_history");
     }
   };
 
@@ -325,7 +316,7 @@ export default function App() {
         console.error("Failed to save message to Firebase:", err);
       }
     }
-  }, [currentSessionId, currentUser]);
+  }, [currentSessionId]);
 
   useEffect(() => {
     return () => {

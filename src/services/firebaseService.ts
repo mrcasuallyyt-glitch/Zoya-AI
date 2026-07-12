@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import {
   getFirestore,
   doc,
@@ -95,26 +95,6 @@ export async function signInWithGoogle() {
   }
 }
 
-export async function signUpWithEmail(email: string, pass: string) {
-  try {
-    const result = await createUserWithEmailAndPassword(auth, email, pass);
-    return result.user;
-  } catch (error) {
-    console.error("Failed to sign up with email", error);
-    throw error;
-  }
-}
-
-export async function loginWithEmail(email: string, pass: string) {
-  try {
-    const result = await signInWithEmailAndPassword(auth, email, pass);
-    return result.user;
-  } catch (error) {
-    console.error("Failed to login with email", error);
-    throw error;
-  }
-}
-
 export async function logout() {
   try {
     await signOut(auth);
@@ -174,9 +154,7 @@ export async function updateUserProfile(uid: string, name: string, age: number) 
 // Firestore helper functions
 export async function createSession(sessionId: string, title: string) {
   const user = auth.currentUser;
-  if (!user) {
-    throw new Error("User must be authenticated to create a session");
-  }
+  if (!user) throw new Error("User must be authenticated to create a session");
 
   const path = `sessions/${sessionId}`;
   try {
@@ -224,9 +202,7 @@ export async function addMessageToSession(
 
 export async function getSessionsForUser(): Promise<any[]> {
   const user = auth.currentUser;
-  if (!user) {
-    return [];
-  }
+  if (!user) return [];
 
   const path = "sessions";
   try {
